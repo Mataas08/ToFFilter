@@ -193,4 +193,5 @@ tofFilter.setDeltaNorm(100);
 ---
 
 ## License
-MIT License (or Apache 2.0, depending on your choice).  
+MIT License
+
