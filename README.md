@@ -6,6 +6,8 @@ It stabilizes raw measurements using:
 - **Deadband** (ignores micro-jitter)  
 - **Adaptive EMA** (exponential moving average) with **log-sigmoid dynamic α**  
 
+<img width="1383" height="912" alt="Figure" src="https://github.com/user-attachments/assets/1172998a-da6d-4f2c-958a-fb1243123eab" />
+
 ---
 
 ## Features
@@ -194,4 +196,5 @@ tofFilter.setDeltaNorm(100);
 
 ## License
 MIT License
+
 
