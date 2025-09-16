@@ -6,42 +6,74 @@ class ToFFilter {
  public:
   ToFFilter();
 
-  // --- konfiguracja (ustawiana w setup()) ---
-  void setOffset(int mm);                  // offset w mm
-  void setRangeLimits(int minMm, int maxMm); // zakres ważnych wartości (np. <15=0, >2000=NAN)
-  void setPublishInterval(unsigned long ms);// min. odstęp publikacji
-  void setAlphaLimits(float minAlpha, float maxAlpha); // zakres współczynnika filtra
-  void setDeadband(int mm);                // strefa martwa w mm
-  void setDeltaNorm(int mm);               // normalizacja deltaFactor (np. 60 mm)
-  
-  // --- główna funkcja filtra ---
-  double filter(int rawMm); // przyjmuje mm z czujnika, zwraca przefiltrowane w metrach
+  // --- Basic configuration ---
+  void setOffset(int mm);                        // Offset correction in mm
+  void setRangeLimits(int minMm, int maxMm);     // Valid measurement range
+  void setPublishInterval(unsigned long ms);     // Min interval between outputs
+
+  // --- Alpha (EMA) filter ---
+  void setAlpha(bool enabled, float minAlpha = 0.02f, float maxAlpha = 0.6f); // Adaptive smoothing
+
+  // --- Deadband filter ---
+  void setDeadband(bool enabled, int mm = 2);    // Ignore small changes
+
+  // --- DeltaNorm ---
+  void setDeltaNorm(bool enabled, int mm = 60);  // Normalize reactivity
+
+  // --- Stability lock ---
+  void setStability(bool enabled, int mm = 10, unsigned long ms = 2000); // Freeze when stable
+
+  // --- Percent filter ---
+  void setPercentFilter(bool enabled, float pct = 0.05f, int startMm = -1); // Relative filter at long range
+
+  // --- Main filter ---
+  double filter(int rawMm);  // Input mm → Output meters (or NAN/0.0)
 
  private:
-  // parametry
+  // General parameters
   int OFFSET_MM = 10;
   int MIN_VALID_MM = 15;
   int MAX_VALID_MM = 2000;
   unsigned long PUBLISH_INTERVAL = 200;
   int NAN_THRESHOLD = 2;
 
+  // Alpha filter
+  bool ALPHA_ENABLED = false;
   float ALPHA_MIN = 0.02f;
   float ALPHA_MAX = 0.6f;
+
+  // Deadband
+  bool DEADBAND_ENABLED = false;
   int DEADBAND_MM = 2;
+
+  // DeltaNorm
+  bool DELTANORM_ENABLED = false;
   int DELTA_NORM = 60;
 
-  // stan wewnętrzny
+  // Stability lock
+  bool STABILITY_LOCK = false;
+  int STABILITY_THRESHOLD_MM = 10;
+  unsigned long STABILITY_TIME_MS = 2000;
+  unsigned long lastMovement = 0;
+  bool frozen = false;
+
+  // Percent filter
+  bool PERCENT_FILTER_ENABLED = false;
+  float PERCENT_THRESHOLD = 0.05f;
+  int PERCENT_START_MM = -1;
+
+  // Internal state
   int nanCount = 0;
   float filtered_mm = -1;
   double lastPublishedValue = NAN;
   unsigned long lastPublish = 0;
 
-  // median filter
+  // Median filter
   int medianBuf[3] = {0,0,0};
   int medianIdx = 0;
   bool medianFilled = false;
 
-  // funkcje pomocnicze
+  // Helpers
   double handleTimeout(unsigned long now);
   double stabilizeCurve(int mm);
   void pushMedian(int v);
